@@ -53,3 +53,8 @@ environment=PYTHONPATH=/home/pi/.local/lib/python3.7/site-packages
 ```commandline
 python3 TFLite_detection_webcam.py --modeldir=coco-model --resolution=1600x1200 --framerate=30
 ```
+
+## What's missing?
+* ./photos folder rotation
+* downscale emailing photos - currently it's ~3MB (1600x1200 px)
+* have control over sensitivity. It's good, crazy good right now
