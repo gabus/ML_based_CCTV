@@ -7,6 +7,8 @@ Thanks to
 * https://github.com/HackerShackOfficial/Smart-Security-Camera
 * https://github.com/EdjeElectronics/TensorFlow-Lite-Object-Detection-on-Android-and-Raspberry-Pi
 
+## How to make it work? 
+
 ```commandline
 sudo apt-update
 ```
