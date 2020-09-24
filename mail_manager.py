@@ -32,6 +32,7 @@ def sendEmail(frame_names):
         image_content = open(frame_name, 'rb').read()
         msgImage = MIMEImage(image_content)
         msgImage.add_header('Content-ID', '<image1>')
+        msgImage.add_header('Content-Disposition', 'attachment', filename=frame_name)
         msgRoot.attach(msgImage)
 
     smtp = smtplib.SMTP('smtp.gmail.com', 587)
