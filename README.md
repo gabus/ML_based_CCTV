@@ -51,8 +51,8 @@ environment=PYTHONPATH=/home/pi/.local/lib/python3.7/site-packages
 
 ### add cron to crontab -e
 ```commandline
-*/5 * * * * python3 /home/pi/tflite/crons/photos_cleanup_cron.py >> /var/log/motioneye-cctv-cron.log 2>&1
-*/6 * * * * sh /home/pi/tflite/crons/restart_app.sh >> /var/log/motioneye-cctv-cron.log 2>&1
+*/30 * * * * python3 /home/pi/tflite/crons/photos_cleanup_cron.py >> /var/log/motioneye-cctv-cron.log 2>&1
+*/31 * * * * sh /home/pi/tflite/crons/restart_app.sh >> /var/log/motioneye-cctv-cron.log 2>&1
 ```
 
 ### to run scripts manually instead of supervisor use
