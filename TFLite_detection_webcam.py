@@ -25,6 +25,10 @@ import importlib.util
 from mail_manager import sendEmail
 from file_writer import write_image
 import datetime
+import logging
+
+logging.basicConfig(format='[%(asctime)s] %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
+
 
 # python3 TFLite_detection_webcam.py --modeldir=coco-model --resolution=1600x1200 --framerate=30
 # Define VideoStream class to handle streaming of video from webcam in separate processing thread
@@ -42,11 +46,11 @@ class VideoStream:
         # Read first frame from the stream
         (self.grabbed, self.frame) = self.stream.read()
 
-	# Variable to control when the camera is stopped
+    # Variable to control when the camera is stopped
         self.stopped = False
 
     def start(self):
-	# Start the thread that reads frames from the video stream
+    # Start the thread that reads frames from the video stream
         Thread(target=self.update,args=()).start()
         return self
 
@@ -63,11 +67,11 @@ class VideoStream:
             (self.grabbed, self.frame) = self.stream.read()
 
     def read(self):
-	# Return the most recent frame
+    # Return the most recent frame
         return self.frame
 
     def stop(self):
-	# Indicate that the camera and thread should be stopped
+    # Indicate that the camera and thread should be stopped
         self.stopped = True
 
 # Define and parse input arguments
@@ -139,9 +143,8 @@ if labels[0] == '???':
 # Load the Tensorflow Lite model.
 # If using Edge TPU, use special load_delegate argument
 if use_TPU:
-    interpreter = Interpreter(model_path=PATH_TO_CKPT,
-                              experimental_delegates=[load_delegate('libedgetpu.so.1.0')])
-    print(PATH_TO_CKPT)
+    interpreter = Interpreter(model_path=PATH_TO_CKPT, experimental_delegates=[load_delegate('libedgetpu.so.1.0')])
+    logging.info(PATH_TO_CKPT)
 else:
     interpreter = Interpreter(model_path=PATH_TO_CKPT)
 
@@ -166,7 +169,7 @@ freq = cv2.getTickFrequency()
 videostream = VideoStream(resolution=(imW, imH), framerate=user_framerate).start()
 time.sleep(1)
 
-print("Start while loop")
+logging.info("Start while loop")
 object_name = ""
 person_frame_names = []
 
@@ -241,7 +244,7 @@ while True:
     # cv2.imshow('Object detector', frame)
 
     if object_name and object_name == "person" or keep_recording:
-        print("recording")
+        logging.info("recording")
         # File name generator
         now = datetime.datetime.now()
         sub_dir = now.strftime("%Y-%m-%d")
@@ -259,11 +262,11 @@ while True:
 
         full_file_path = os.path.join(full_dir, file_name)
         person_frame_names.append(full_file_path)
-        print("HUMAN FOUND: " + full_file_path)
+        logging.info("HUMAN FOUND: " + full_file_path)
 
 
     if person_frame_names and (detection_time + send_email_timeout < time.time()):
-        print("Sending email")
+        logging.info("Sending email")
         person_frame_names_1 = person_frame_names.copy()
         Thread(target=sendEmail, args=(person_frame_names_1,)).start()
         person_frame_names.clear()

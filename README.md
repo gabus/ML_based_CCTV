@@ -49,6 +49,12 @@ redirect_stderr=true
 environment=PYTHONPATH=/home/pi/.local/lib/python3.7/site-packages
 ```
 
+### add cron to crontab -e
+```commandline
+*/5 * * * * python3 /home/pi/tflite/crons/photos_cleanup_cron.py >> /var/log/motioneye-cctv-cron.log 2>&1
+*/6 * * * * sh /home/pi/tflite/crons/restart_app.sh >> /var/log/motioneye-cctv-cron.log 2>&1
+```
+
 ### to run scripts manually instead of supervisor use
 ```commandline
 python3 TFLite_detection_webcam.py --modeldir=coco-model --resolution=1600x1200 --framerate=30
