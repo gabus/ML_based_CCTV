@@ -5,7 +5,7 @@ import logging
 
 logging.basicConfig(format='[%(asctime)s] %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
 
-path = "../photos"
+path = "/home/pi/tflite/photos"
 now = datetime.datetime.now()
 day_diff = datetime.timedelta(days=1)
 

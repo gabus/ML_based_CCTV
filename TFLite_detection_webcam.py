@@ -171,7 +171,9 @@ time.sleep(1)
 
 logging.info("Start while loop")
 object_name = ""
+person_score = 0
 person_frame_names = []
+person_score_threshold = 55
 
 # How long to wait after first person detected before sending email
 send_email_timeout = 5
@@ -185,6 +187,8 @@ keep_recording_timer = 0
 
 #for frame1 in camera.capture_continuous(rawCapture, format="bgr",use_video_port=True):
 while True:
+    # Reset object name so in case camera don't find anything, logging is skipped
+    object_name = ""
 
     # Start timer (for calculating frame rate)
     t1 = cv2.getTickCount()
@@ -222,6 +226,13 @@ while True:
             if object_name != "person":
                 continue
 
+            person_score = int(scores[i]*100)
+
+            # Camera is too sensitive. Use this threshold to ignore frames where object is 55% recognized
+            if person_score < person_score_threshold:
+                continue
+
+
             # Get bounding box coordinates and draw box
             # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
             ymin = int(max(1,(boxes[i][0] * imH)))
@@ -243,7 +254,7 @@ while True:
     # All the results have been drawn on the frame, so it's time to display it.
     # cv2.imshow('Object detector', frame)
 
-    if object_name and object_name == "person" or keep_recording:
+    if object_name and object_name == "person" and person_score >= person_score_threshold or keep_recording:
         logging.info("recording")
         # File name generator
         now = datetime.datetime.now()
@@ -253,7 +264,7 @@ while True:
         write_image(full_dir, file_name, frame)
 
 
-    if object_name and object_name == "person":
+    if object_name and object_name == "person" and person_score >= person_score_threshold:
         keep_recording = True
 
         if detection_time == 0:
