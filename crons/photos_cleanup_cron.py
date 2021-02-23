@@ -7,7 +7,7 @@ logging.basicConfig(format='[%(asctime)s] %(levelname)s %(message)s', datefmt='%
 
 path = "/home/pi/tflite/photos"
 now = datetime.datetime.now()
-day_diff = datetime.timedelta(days=1)
+day_diff = datetime.timedelta(days=4)
 
 yesterday = (now - day_diff).strftime("%Y-%m-%d")
 

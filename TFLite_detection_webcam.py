@@ -173,7 +173,7 @@ logging.info("Start while loop")
 object_name = ""
 person_score = 0
 person_frame_names = []
-person_score_threshold = 55
+person_score_threshold = 59
 
 # How long to wait after first person detected before sending email
 send_email_timeout = 5

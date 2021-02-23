@@ -1,8 +1,6 @@
 ### What's this?
 Neural network based object recognition CCTV which sends email once there's a person.
 
-I know it's shit but have you ever used ML on raspberry pi?
-
 Thanks to 
 * https://github.com/HackerShackOfficial/Smart-Security-Camera
 * https://github.com/EdjeElectronics/TensorFlow-Lite-Object-Detection-on-Android-and-Raspberry-Pi
@@ -61,6 +59,6 @@ python3 TFLite_detection_webcam.py --modeldir=coco-model --resolution=1600x1200 
 ```
 
 ## What's missing?
-* ./photos folder rotation
 * downscale emailing photos - currently it's ~3MB (1600x1200 px)
-* have control over sensitivity. It's good, crazy good right now
+* there's rare random issue when image quality becomes really poor. Requires power disconnection
+* 
