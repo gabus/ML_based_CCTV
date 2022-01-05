@@ -8,15 +8,15 @@ Thanks to
 ## How to make it work? 
 
 ```commandline
-sudo apt-update
+sudo apt-get update
 ```
 
 ```commandline
-sudo apt-get install supervisorctl
+sudo apt-get install supervisor
 ```
 
 ```commandline
-sudo apt-get install pthon3-pip
+sudo apt-get install python3-pip
 ```
 
 ### enable camera in settings

@@ -28,6 +28,7 @@ import datetime
 import logging
 
 logging.basicConfig(format='[%(asctime)s] %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
+keep_recording = False
 
 
 # python3 TFLite_detection_webcam.py --modeldir=coco-model --resolution=1600x1200 --framerate=30
@@ -66,6 +67,10 @@ class VideoStream:
             # Otherwise, grab the next frame from the stream
             (self.grabbed, self.frame) = self.stream.read()
 
+            # to save resources, fetch new frame after 1s - unless person detected
+            if not keep_recording:
+                time.sleep(1)
+
     def read(self):
     # Return the most recent frame
         return self.frame
@@ -76,20 +81,13 @@ class VideoStream:
 
 # Define and parse input arguments
 parser = argparse.ArgumentParser()
-parser.add_argument('--modeldir', help='Folder the .tflite file is located in',
-                    required=True)
-parser.add_argument('--graph', help='Name of the .tflite file, if different than detect.tflite',
-                    default='detect.tflite')
-parser.add_argument('--labels', help='Name of the labelmap file, if different than labelmap.txt',
-                    default='labelmap.txt')
-parser.add_argument('--threshold', help='Minimum confidence threshold for displaying detected objects',
-                    default=0.5)
-parser.add_argument('--resolution', help='Desired webcam resolution in WxH. If the webcam does not support the resolution entered, errors may occur.',
-                    default='1280x720')
-parser.add_argument('--edgetpu', help='Use Coral Edge TPU Accelerator to speed up detection',
-                    action='store_true')
-parser.add_argument('--framerate', help='Set camera framerate',
-                    default=30)
+parser.add_argument('--modeldir', help='Folder the .tflite file is located in', required=True)
+parser.add_argument('--graph', help='Name of the .tflite file, if different than detect.tflite', default='detect.tflite')
+parser.add_argument('--labels', help='Name of the labelmap file, if different than labelmap.txt', default='labelmap.txt')
+parser.add_argument('--threshold', help='Minimum confidence threshold for displaying detected objects', default=0.5)
+parser.add_argument('--resolution', help='Desired webcam resolution in WxH. If the webcam does not support the resolution entered, errors may occur.', default='1280x720')
+parser.add_argument('--edgetpu', help='Use Coral Edge TPU Accelerator to speed up detection', action='store_true')
+parser.add_argument('--framerate', help='Set camera framerate', default=30)
 
 args = parser.parse_args()
 
@@ -182,7 +180,6 @@ detection_time = 0
 
 # when no human detected, slow down scanning to save storage space
 person_detection_sleep_cooldown_time = 6
-keep_recording = False
 keep_recording_timer = 0
 
 #for frame1 in camera.capture_continuous(rawCapture, format="bgr",use_video_port=True):
