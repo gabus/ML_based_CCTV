@@ -61,4 +61,4 @@ python3 TFLite_detection_webcam.py --modeldir=coco-model --resolution=1600x1200 
 ## What's missing?
 * downscale emailing photos - currently it's ~3MB (1600x1200 px)
 * there's rare random issue when image quality becomes really poor. Requires power disconnection
-* 
+* could be faster
