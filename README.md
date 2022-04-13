@@ -41,6 +41,7 @@ toEmail = '50_cent@gmail.com'
 ```/etc/supervisor/conf.d/cctv.conf
 [program:motioneye-cctv]
 command=python3 -u TFLite_detection_webcam.py --modeldir=coco-model --resolution=1600x1200 --framerate=30
+user=pi
 directory=/home/pi/tflite
 stdout_logfile=/var/log/motioneye-cctv.log
 redirect_stderr=true
@@ -56,6 +57,13 @@ environment=PYTHONPATH=/home/pi/.local/lib/python3.7/site-packages
 ### to run scripts manually instead of supervisor use
 ```commandline
 python3 TFLite_detection_webcam.py --modeldir=coco-model --resolution=1600x1200 --framerate=30
+```
+
+### Debugging
+```commandline
+sudo supervisorctl status
+sudo supervisorctl restart all
+tail -fn 100 /var/log/motioneye-cctv.log
 ```
 
 ## What's missing?
