@@ -35,13 +35,10 @@ pipenv install
 ```
 
 ## Project setup: all platforms
-
-### modify credentials in mail_manager.py
-```python
-fromEmail = 'your_mama@gmail.com'
-fromEmailPassword = 'your_momma_is_so_ugly_she_made_One_Direction_go_another_direction'
-toEmail = '50_cent@gmail.com'
+```commandline
+cp .env.example .env
 ```
+
 
 ### supervisor config /etc/supervisor/conf.d/cctv.conf
 ```/etc/supervisor/conf.d/cctv.conf
