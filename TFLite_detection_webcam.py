@@ -18,14 +18,13 @@ import os
 import argparse
 import cv2
 import numpy as np
-import sys
 import time
 from threading import Thread
 import importlib.util
 from mail_manager import sendEmail
-from file_writer import write_image
-import datetime
+from writer import Writer
 import logging
+from datetime import datetime
 from video_stream import VideoStream
 
 logging.basicConfig(format='[%(asctime)s] %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
@@ -124,6 +123,10 @@ print("before camera claas init")
 videostream = VideoStream(resolution=(imW, imH), framerate=user_framerate).start()
 time.sleep(1)
 
+# Initialize writer
+writer = Writer()
+
+
 logging.info("Start while loop")
 object_name = ""
 person_score = 0
@@ -210,12 +213,8 @@ while True:
 
     if object_name and object_name == "person" and person_score >= person_score_threshold or keep_recording:
         logging.info("recording")
-        # File name generator
-        now = datetime.datetime.now()
-        sub_dir = now.strftime("%Y-%m-%d")
-        full_dir = os.path.join("photos", sub_dir)
-        file_name = "%s.png" % (now.strftime("%Y-%m-%d_(%H_%M_%S)_%f"))
-        write_image(full_dir, file_name, frame)
+        file_name = "%s.png" % (datetime.now().strftime("%Y-%m-%d_(%H-%M-%S)_%f"))
+        writer.write_image(file_name, frame)
 
 
     if object_name and object_name == "person" and person_score >= person_score_threshold:
@@ -225,7 +224,7 @@ while True:
             detection_time = time.time()
             keep_recording_timer = time.time()
 
-        full_file_path = os.path.join(full_dir, file_name)
+        full_file_path = writer.get_last_location(file_name)
         person_frame_names.append(full_file_path)
         logging.info("HUMAN FOUND: " + full_file_path)
 
