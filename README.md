@@ -26,6 +26,7 @@ sudo reboot now
 
 
 ## How to make it work: Windows
+https://www.python.org/downloads/release/python-3810/
 ```windows (2022.04.14: tflite-runtime has compiled version only for python 3.8 on windows)
 py -3.8 -m venv venv
 .\venv\scripts\activate

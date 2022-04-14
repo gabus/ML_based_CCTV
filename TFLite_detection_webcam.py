@@ -26,70 +26,13 @@ from mail_manager import sendEmail
 from file_writer import write_image
 import datetime
 import logging
+from video_stream import VideoStream
 
 logging.basicConfig(format='[%(asctime)s] %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
 keep_recording = False
 
 print("script initiated")
 
-# python3 TFLite_detection_webcam.py --modeldir=coco-model --resolution=1600x1200 --framerate=30
-# Define VideoStream class to handle streaming of video from webcam in separate processing thread
-# Source - Adrian Rosebrock, PyImageSearch: https://www.pyimagesearch.com/2015/12/28/increasing-raspberry-pi-fps-with-python-and-opencv/
-class VideoStream:
-    print("VideoStream init")
-
-    """Camera object that controls video streaming from the Picamera"""
-    def __init__(self,resolution=(640, 480), framerate=30):
-        print("VideoStream constructor init")
-
-        # Initialize the PiCamera and the camera image stream
-        self.stream = cv2.VideoCapture(0)
-        print("VideoStream cv2.VideoCapture(0)")
-
-        ret = self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'X264'))
-        ret = self.stream.set(3, resolution[0])
-        ret = self.stream.set(4, resolution[1])
-        ret = self.stream.set(cv2.CAP_PROP_FPS, framerate)
-        print("VideoStream after params set")
-
-
-        # Read first frame from the stream
-        (self.grabbed, self.frame) = self.stream.read()
-
-        print("VideoStream after first screen grab")
-
-
-    # Variable to control when the camera is stopped
-        self.stopped = False
-
-    def start(self):
-    # Start the thread that reads frames from the video stream
-        Thread(target=self.update,args=()).start()
-        return self
-
-    def update(self):
-        # Keep looping indefinitely until the thread is stopped
-        while True:
-            # If the camera is stopped, stop the thread
-            if self.stopped:
-                # Close camera resources
-                self.stream.release()
-                return
-
-            # Otherwise, grab the next frame from the stream
-            (self.grabbed, self.frame) = self.stream.read()
-
-            # to save resources, fetch new frame after 1s - unless person detected
-            if not keep_recording:
-                time.sleep(1)
-
-    def read(self):
-    # Return the most recent frame
-        return self.frame
-
-    def stop(self):
-    # Indicate that the camera and thread should be stopped
-        self.stopped = True
 
 # Define and parse input arguments
 parser = argparse.ArgumentParser()
@@ -99,7 +42,7 @@ parser.add_argument('--labels', help='Name of the labelmap file, if different th
 parser.add_argument('--threshold', help='Minimum confidence threshold for displaying detected objects', default=0.5)
 parser.add_argument('--resolution', help='Desired webcam resolution in WxH. If the webcam does not support the resolution entered, errors may occur.', default='1280x720')
 parser.add_argument('--edgetpu', help='Use Coral Edge TPU Accelerator to speed up detection', action='store_true')
-parser.add_argument('--framerate', help='Set camera framerate', default=30)
+parser.add_argument('--framerate', help='Set camera framerate', default=10)
 
 args = parser.parse_args()
 
@@ -271,7 +214,7 @@ while True:
         now = datetime.datetime.now()
         sub_dir = now.strftime("%Y-%m-%d")
         full_dir = os.path.join("photos", sub_dir)
-        file_name = "%s.png" % (now.strftime("%Y-%m-%d_%H:%M:%S_%f"))
+        file_name = "%s.png" % (now.strftime("%Y-%m-%d_(%H_%M_%S)_%f"))
         write_image(full_dir, file_name, frame)
 
 
