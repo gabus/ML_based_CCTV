@@ -5,18 +5,17 @@ Thanks to
 * https://github.com/HackerShackOfficial/Smart-Security-Camera
 * https://github.com/EdjeElectronics/TensorFlow-Lite-Object-Detection-on-Android-and-Raspberry-Pi
 
-## How to make it work? 
-
+## How to make it work: Linux (raspberry pi)
 ```commandline
-sudo apt-get update
+python3 -m venv venv
+source venv/bin/activate
+pip install pipenv
+pipenv install
 ```
 
+### install all other crap
 ```commandline
-sudo apt-get install supervisor
-```
-
-```commandline
-sudo apt-get install python3-pip
+sh ./get_pi_requirements.sh
 ```
 
 ### enable camera in settings
@@ -25,10 +24,16 @@ sudo raspi-config
 sudo reboot now
 ```
 
-### install all other crap
-```commandline
-sh ./get_pi_requirements.sh
+
+## How to make it work: Windows
+```windows (2022.04.14: tflite-runtime has compiled version only for python 3.8 on windows)
+py -3.8 -m venv venv
+.\venv\scripts\activate
+pip install pipenv
+pipenv install
 ```
+
+## Project setup: all platforms
 
 ### modify credentials in mail_manager.py
 ```python
@@ -70,3 +75,10 @@ tail -fn 100 /var/log/motioneye-cctv.log
 * downscale emailing photos - currently it's ~3MB (1600x1200 px)
 * there's rare random issue when image quality becomes really poor. Requires power disconnection
 * could be faster
+
+### Troubleshooting
+```commandline
+On windows '.\venv\scripts\activate' throws UnauthorizedAccess
+Run PowerShell in Admin mode:
+Set-ExecutionPolicy RemoteSigned
+```

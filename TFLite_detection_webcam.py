@@ -30,22 +30,34 @@ import logging
 logging.basicConfig(format='[%(asctime)s] %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
 keep_recording = False
 
+print("script initiated")
 
 # python3 TFLite_detection_webcam.py --modeldir=coco-model --resolution=1600x1200 --framerate=30
 # Define VideoStream class to handle streaming of video from webcam in separate processing thread
 # Source - Adrian Rosebrock, PyImageSearch: https://www.pyimagesearch.com/2015/12/28/increasing-raspberry-pi-fps-with-python-and-opencv/
 class VideoStream:
+    print("VideoStream init")
+
     """Camera object that controls video streaming from the Picamera"""
     def __init__(self,resolution=(640, 480), framerate=30):
+        print("VideoStream constructor init")
+
         # Initialize the PiCamera and the camera image stream
         self.stream = cv2.VideoCapture(0)
+        print("VideoStream cv2.VideoCapture(0)")
+
         ret = self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'X264'))
         ret = self.stream.set(3, resolution[0])
         ret = self.stream.set(4, resolution[1])
         ret = self.stream.set(cv2.CAP_PROP_FPS, framerate)
+        print("VideoStream after params set")
+
 
         # Read first frame from the stream
         (self.grabbed, self.frame) = self.stream.read()
+
+        print("VideoStream after first screen grab")
+
 
     # Variable to control when the camera is stopped
         self.stopped = False
@@ -162,6 +174,8 @@ input_std = 127.5
 # Initialize frame rate calculation
 frame_rate_calc = 1
 freq = cv2.getTickFrequency()
+
+print("before camera claas init")
 
 # Initialize video stream
 videostream = VideoStream(resolution=(imW, imH), framerate=user_framerate).start()
