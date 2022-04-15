@@ -80,3 +80,17 @@ On windows '.\venv\scripts\activate' throws UnauthorizedAccess
 Run PowerShell in Admin mode:
 Set-ExecutionPolicy RemoteSigned
 ```
+
+
+### todo 
+* move all file in src
+* throttle down if no human detected
+* fetch camera from only when requested from main thread
+* optimize mail manager (reduce file size without reducing quality? is there a better way to display images in gmail?)
+* some files use camel-case variable naming. Change to match snake-style
+* write setup.sh script which make raspberry py ready to go (venv, pip install, apt-get requirements, set .env)
+* fix any problems in "Code -> Inspect Code"
+
+[] which file to send via email? even though camera might continue recording 5s after last human detection, should it be sent to gmail?
+[] 
+
