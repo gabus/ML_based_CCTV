@@ -92,10 +92,29 @@ Set-ExecutionPolicy RemoteSigned
 [] fix any problems in "Code -> Inspect Code"
 [] photos_clean_up_cron.py has hardcoded path variable. Fix it
 [] photos_clean_up_cron.py deletes only last day's photos. Adapt code to delete all folder before defined day
+[] experiment with image codecs to get the best quality for smallest file size
+[] add email title to .env file. Support for multiple cameras
 
-.env todos
-[] add email title
+Specs 1 (preferred):
+1. Every 1s the latest frame is requested from video_stream
+2. Frame is analyzed via ML 
+3. If human detected, for the next 5 seconds continue to request frames from video_stream and store them locally (without analyzing via ML)
+4. After 5 seconds ask for new latest frame and analyze again
+5. If no human detected, send email (max 25MB) and return to 1, otherwise continue from step 3
 
-[] which file to send via email? even though camera might continue recording 5s after last human detection, should it be sent to gmail?
-[] 
++ gathers as many frames as camera capable to produce + writing locally
++ low cpu hit
+- can't show on frame where object was detected
+- probably need to scale down photos before sending to gmail. Gmail has 25Mb attachment limit
 
+
+Specs 2:
+1. evey 1s the latest frame is requested from video_stream
+2. Frame is analyzed via ML 
+3. If human is detected, continue to request new frames from video_stream, analyze via ML and store locally
+4. If 3s passed since last human detection, continue to 5
+5. send email. Back to 1
+
++ all frames are consistent 
+- higher cpu hit
+- fewer frames are recorded as cpu is busy analysing frames
