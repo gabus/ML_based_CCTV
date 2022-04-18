@@ -2,12 +2,13 @@ import os
 import datetime
 import shutil
 import logging
+from settings import STORAGE_RETENTION_DAYS
 
 logging.basicConfig(format='[%(asctime)s] %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
 
 path = "/home/pi/tflite/photos"
 now = datetime.datetime.now()
-day_diff = datetime.timedelta(days=3)
+day_diff = datetime.timedelta(days=STORAGE_RETENTION_DAYS)
 
 yesterday = (now - day_diff).strftime("%Y-%m-%d")
 

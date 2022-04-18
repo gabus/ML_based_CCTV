@@ -43,7 +43,7 @@ cp .env.example .env
 ### supervisor config /etc/supervisor/conf.d/cctv.conf
 ```/etc/supervisor/conf.d/cctv.conf
 [program:motioneye-cctv]
-command=python3 -u TFLite_detection_webcam.py --modeldir=coco-model --resolution=1600x1200 --framerate=30
+command=python3 -u src/TFLite_detection_webcam.py --modeldir=coco-model --resolution=1600x1200 --framerate=30
 user=pi
 directory=/home/pi/tflite
 stdout_logfile=/var/log/motioneye-cctv.log
@@ -59,7 +59,7 @@ environment=PYTHONPATH=/home/pi/.local/lib/python3.7/site-packages
 
 ### to run scripts manually instead of supervisor use
 ```commandline
-python3 TFLite_detection_webcam.py --modeldir=coco-model --resolution=1600x1200 --framerate=30
+python3 src/TFLite_detection_webcam.py --modeldir=coco-model --resolution=1600x1200 --framerate=30
 ```
 
 ### Debugging
@@ -83,13 +83,18 @@ Set-ExecutionPolicy RemoteSigned
 
 
 ### todo 
-* move all file in src
-* throttle down if no human detected
-* fetch camera from only when requested from main thread
-* optimize mail manager (reduce file size without reducing quality? is there a better way to display images in gmail?)
-* some files use camel-case variable naming. Change to match snake-style
-* write setup.sh script which make raspberry py ready to go (venv, pip install, apt-get requirements, set .env)
-* fix any problems in "Code -> Inspect Code"
+[✔] move all file in src
+[] throttle down if no human detected
+[] fetch camera from only when requested from main thread
+[] optimize mail manager (reduce file size without reducing quality? is there a better way to display images in gmail?)
+[] some files use camel-case variable naming. Change to match snake-style
+[] write setup.sh script which make raspberry py ready to go (venv, pip install, apt-get requirements, set .env)
+[] fix any problems in "Code -> Inspect Code"
+[] photos_clean_up_cron.py has hardcoded path variable. Fix it
+[] photos_clean_up_cron.py deletes only last day's photos. Adapt code to delete all folder before defined day
+
+.env todos
+[] add email title
 
 [] which file to send via email? even though camera might continue recording 5s after last human detection, should it be sent to gmail?
 [] 
