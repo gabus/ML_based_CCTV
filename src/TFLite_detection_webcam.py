@@ -66,8 +66,8 @@ frame_rate_calc = 1
 freq = cv2.getTickFrequency()
 
 # Initialize video stream
-videostream = VideoStream(resolution=(cli_argument_parser.IM_W, cli_argument_parser.IM_H), framerate=cli_argument_parser.USER_FRAMERATE).start()
-time.sleep(1)
+video_stream = VideoStream(resolution=(cli_argument_parser.IM_W, cli_argument_parser.IM_H), framerate=cli_argument_parser.USER_FRAMERATE)
+# time.sleep(1)
 
 # Initialize writer
 writer = Writer()
@@ -97,7 +97,7 @@ while True:
     t1 = cv2.getTickCount()
 
     # Grab frame from video stream
-    frame1 = videostream.read()
+    frame1 = video_stream.get_new_frame()
 
     # Acquire frame and resize to expected shape [1xHxWx3]
     frame = frame1.copy()
@@ -198,3 +198,20 @@ while True:
 
     # Let it rest a little
     time.sleep(0.2)
+
+
+human_detected = False
+
+def idle_loop():
+    while not human_detected:
+
+        time.sleep(0.5)
+
+
+
+def detection_loop():
+    pass
+
+
+def photo_ml_parser():
+    pass
