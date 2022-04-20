@@ -1,19 +1,3 @@
-######## Webcam Object Detection Using Tensorflow-trained Classifier #########
-#
-# Author: Evan Juras
-# Date: 10/27/19
-# Description: 
-# This program uses a TensorFlow Lite model to perform object detection on a live webcam
-# feed. It draws boxes and scores around the objects of interest in each frame from the
-# webcam. To improve FPS, the webcam object runs in a separate thread from the main program.
-# This script will work with either a Picamera or regular USB webcam.
-#
-# This code is based off the TensorFlow Lite image classification example at:
-# https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/examples/python/label_image.py
-#
-# I added my own method of drawing boxes and labels using OpenCV.
-
-import os
 from cv2 import cv2
 import numpy as np
 import time
@@ -24,194 +8,158 @@ from datetime import datetime
 from video_stream import VideoStream
 from loguru import logger
 import cli_argument_parser
-from tflite_runtime.interpreter import Interpreter
-
-keep_recording = False
-
-# Get path to current working directory
-CWD_PATH = os.getcwd()
-
-# Path to .tflite file, which contains the model that is used for object detection
-PATH_TO_CKPT = os.path.join(CWD_PATH, cli_argument_parser.MODEL_NAME, cli_argument_parser.GRAPH_NAME)
-
-# Path to label map file
-PATH_TO_LABELS = os.path.join(CWD_PATH, cli_argument_parser.MODEL_NAME, cli_argument_parser.LABELMAP_NAME)
-
-# Load the label map
-with open(PATH_TO_LABELS, 'r') as f:
-    labels = [line.strip() for line in f.readlines()]
-
-# Have to do a weird fix for label map if using the COCO "starter model" from
-# https://www.tensorflow.org/lite/models/object_detection/overview
-# First label is '???', which has to be removed.
-if labels[0] == '???':
-    del(labels[0])
-
-interpreter = Interpreter(model_path=PATH_TO_CKPT)
-interpreter.allocate_tensors()
-
-# Get model details
-input_details = interpreter.get_input_details()
-output_details = interpreter.get_output_details()
-height = input_details[0]['shape'][1]
-width = input_details[0]['shape'][2]
-
-floating_model = (input_details[0]['dtype'] == np.float32)
-
-input_mean = 127.5
-input_std = 127.5
-
-# Initialize frame rate calculation
-frame_rate_calc = 1
-freq = cv2.getTickFrequency()
-
-# Initialize video stream
-video_stream = VideoStream(resolution=(cli_argument_parser.IM_W, cli_argument_parser.IM_H), framerate=cli_argument_parser.USER_FRAMERATE)
-# time.sleep(1)
-
-# Initialize writer
-writer = Writer()
+from photo_ml_parser import MLPhotoParser
 
 
-logger.info("Start while loop")
-object_name = ""
-person_score = 0
-person_frame_names = []
-person_score_threshold = 59
+class ML_CCTV:
 
-# How long to wait after first person detected before sending email
-send_email_timeout = 5
+    def __init__(self):
+        # Initialize video stream
+        self.video_stream = VideoStream((cli_argument_parser.IM_W, cli_argument_parser.IM_H), cli_argument_parser.USER_FRAMERATE)
 
-detection_time = 0
+        # Initialize writer
+        self.writer = Writer()
 
-# when no human detected, slow down scanning to save storage space
-person_detection_sleep_cooldown_time = 6
-keep_recording_timer = 0
+        self.ml = MLPhotoParser(cli_argument_parser.MODEL_NAME, cli_argument_parser.GRAPH_NAME, cli_argument_parser.LABELMAP_NAME)
+        self.labels = self.ml.get_labels()
 
-#for frame1 in camera.capture_continuous(rawCapture, format="bgr",use_video_port=True):
-while True:
-    # Reset object name so in case camera don't find anything, logging is skipped
-    object_name = ""
+    def main(self):
+        # Get model details
+        height = self.ml.get_input_details()[0]['shape'][1]
+        width = self.ml.get_input_details()[0]['shape'][2]
 
-    # Start timer (for calculating frame rate)
-    t1 = cv2.getTickCount()
+        # Initialize frame rate calculation
+        frame_rate_calc = 1
+        freq = cv2.getTickFrequency()
 
-    # Grab frame from video stream
-    frame1 = video_stream.get_new_frame()
+        person_detection_cooldown_time = 6  # in seconds
+        person_detection_timer = 0
 
-    # Acquire frame and resize to expected shape [1xHxWx3]
-    frame = frame1.copy()
-    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    frame_resized = cv2.resize(frame_rgb, (width, height))
-    input_data = np.expand_dims(frame_resized, axis=0)
+        logger.info("Start while loop")
+        # for frame1 in camera.capture_continuous(rawCapture, format="bgr",use_video_port=True):
+        while True:
+            # Start timer (for calculating frame rate)
+            t1 = cv2.getTickCount()
 
-    # Normalize pixel values if using a floating model (i.e. if model is non-quantized)
-    if floating_model:
-        input_data = (np.float32(input_data) - input_mean) / input_std
+            frame = self.video_stream.get_new_frame()
 
-    # Perform the actual detection by running the model with the image as input
-    interpreter.set_tensor(input_details[0]['index'],input_data)
-    interpreter.invoke()
+            # Acquire frame and resize to expected shape [1xHxWx3]
+            # frame = frame1.copy()
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame_resized = cv2.resize(frame_rgb, (width, height))
 
-    # Retrieve detection results
-    boxes = interpreter.get_tensor(output_details[0]['index'])[0] # Bounding box coordinates of detected objects
-    classes = interpreter.get_tensor(output_details[1]['index'])[0] # Class index of detected objects
-    scores = interpreter.get_tensor(output_details[2]['index'])[0] # Confidence of detected objects
-    #num = interpreter.get_tensor(output_details[3]['index'])[0]  # Total number of detected objects (inaccurate and not needed)
+            # ML magic
+            self.ml.analyze_frame(frame_resized)
+            boxes = self.ml.get_boxes()
+            classes = self.ml.get_detected_object_id()
+            scores = self.ml.get_scores()
 
-    # Loop over all detections and draw detection box if confidence is above minimum threshold
-    for i in range(len(scores)):
-        if ((scores[i] > cli_argument_parser.MIN_CONF_THESHOLD) and (scores[i] <= 1.0)):
+            person_score_threshold = 0.59
 
-            # Draw label
-            object_name = labels[int(classes[i])]  # Look up object name from "labels" array using class index
+            # Loop over all detections
+            for i in range(len(scores)):
 
-            if object_name != "person":
+                if scores[i] < person_score_threshold:
+                    continue
+
+                object_name = self.labels[int(classes[i])]  # Look up object name from "labels" array using class index
+
+                if object_name != "person":
+                    continue
+
+                person_detection_timer = time.time()
+                logger.debug({"scores[i]": scores[i], "label": object_name})
+
+                # Get bounding box coordinates and draw box
+                # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
+                ymin = int(max(1, (boxes[i][0] * cli_argument_parser.IM_H)))
+                xmin = int(max(1, (boxes[i][1] * cli_argument_parser.IM_W)))
+                ymax = int(min(cli_argument_parser.IM_H, (boxes[i][2] * cli_argument_parser.IM_H)))
+                xmax = int(min(cli_argument_parser.IM_W, (boxes[i][3] * cli_argument_parser.IM_W)))
+
+                cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (10, 255, 0), 1)
+
+                # ===============================================
+                # ML human score (comment out when not used)
+                # ===============================================
+                label = '%s: %d%%' % (object_name, int(scores[i] * 100))  # Example: 'person: 72%'
+                labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)  # Get font size
+                label_ymin = max(ymin, labelSize[1] + 10)  # Make sure not to draw label too close to top of window
+                cv2.rectangle(frame, (xmin, label_ymin - labelSize[1] - 10), (xmin + labelSize[0], label_ymin + baseLine - 10), (255, 255, 255),  cv2.FILLED)  # Draw white box to put label text in
+                cv2.putText(frame, label, (xmin, label_ymin - 7), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2)  # Draw label text
+                # ===============================================
+
+                # Draw framerate in corner of frame
+                cv2.putText(frame, 'FPS: {0:.2f}'.format(frame_rate_calc), (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)
+
+                # All the results have been drawn on the frame, so it's time to display it.
+                # cv2.imshow('Object detector', frame)
+
+                file_name = "%s.png" % (datetime.now().strftime("%Y-%m-%d_(%H-%M-%S)_%f"))
+                self.writer.write_image(file_name, frame)
+
+                self.detection_loop()
+
+            # if object_name and object_name == "person" and person_score >= person_score_threshold or keep_recording:
+            #     logger.info("recording")
+            #     file_name = "%s.png" % (datetime.now().strftime("%Y-%m-%d_(%H-%M-%S)_%f"))
+            #     writer.write_image(file_name, frame)
+            #
+            # if object_name and object_name == "person" and person_score >= person_score_threshold:
+            #     keep_recording = True
+            #
+            #     if detection_time == 0:
+            #         detection_time = time.time()
+            #         keep_recording_timer = time.time()
+            #
+            #     full_file_path = writer.get_last_location(file_name)
+            #     person_frame_names.append(full_file_path)
+            #     logger.info("HUMAN FOUND: " + full_file_path)
+            #
+            # if person_frame_names and (detection_time + send_email_timeout < time.time()):
+            #     logger.info("Sending email")
+            #     person_frame_names_1 = person_frame_names.copy()
+            #     Thread(target=sendEmail, args=(person_frame_names_1,)).start()
+            #     person_frame_names.clear()
+            #     detection_time = 0
+            #
+            # if keep_recording_timer != 0 and (keep_recording_timer + person_detection_sleep_cooldown_time < time.time()):
+            #     keep_recording = False
+
+            # Calculate frame rate
+            t2 = cv2.getTickCount()
+            time1 = (t2 - t1) / freq
+            frame_rate_calc = 1 / time1
+
+            if person_detection_cooldown_time + person_detection_timer > time.time():
+                logger.debug("Human detected. Camera is alert")
                 continue
 
-            person_score = int(scores[i]*100)
+            logger.debug("idle")
+            time.sleep(1)
 
-            # Camera is too sensitive. Use this threshold to ignore frames where object is 55% recognized
-            if person_score < person_score_threshold:
-                continue
+    def detection_loop(self):
+        """
+        for next x seconds just continue recording without analyzing frames
+        """
+        continues_recording_time = 3  # in seconds
+        start_time = time.time()
+        frame_rate_calc = 1
 
+        while start_time + continues_recording_time > time.time():
+            logger.debug("saving frame without analyzing it")
+            t1 = cv2.getTickCount()
+            freq = cv2.getTickFrequency()
 
-            # Get bounding box coordinates and draw box
-            # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
-            ymin = int(max(1, (boxes[i][0] * cli_argument_parser.IM_H)))
-            xmin = int(max(1, (boxes[i][1] * cli_argument_parser.IM_W)))
-            ymax = int(min(cli_argument_parser.IM_H, (boxes[i][2] * cli_argument_parser.IM_H)))
-            xmax = int(min(cli_argument_parser.IM_W, (boxes[i][3] * cli_argument_parser.IM_W)))
+            frame = self.video_stream.get_new_frame()
+            cv2.putText(frame, 'FPS: {0:.2f}'.format(frame_rate_calc), (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)
 
-            cv2.rectangle(frame, (xmin,ymin), (xmax,ymax), (10, 255, 0), 1)
+            file_name = "%s.png" % (datetime.now().strftime("%Y-%m-%d_(%H-%M-%S)_%f"))
+            self.writer.write_image(file_name, frame)
 
-            # ===============================================
-            # ML human score (comment out when not used)
-            # ===============================================
-            label = '%s: %d%%' % (object_name, int(scores[i]*100)) # Example: 'person: 72%'
-            labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2) # Get font size
-            label_ymin = max(ymin, labelSize[1] + 10) # Make sure not to draw label too close to top of window
-            cv2.rectangle(frame, (xmin, label_ymin-labelSize[1]-10), (xmin+labelSize[0], label_ymin+baseLine-10), (255, 255, 255), cv2.FILLED) # Draw white box to put label text in
-            cv2.putText(frame, label, (xmin, label_ymin-7), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2) # Draw label text
-            # ===============================================
-
-
-    # Draw framerate in corner of frame
-    cv2.putText(frame,'FPS: {0:.2f}'.format(frame_rate_calc),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
-
-    # All the results have been drawn on the frame, so it's time to display it.
-    # cv2.imshow('Object detector', frame)
-
-    if object_name and object_name == "person" and person_score >= person_score_threshold or keep_recording:
-        logger.info("recording")
-        file_name = "%s.png" % (datetime.now().strftime("%Y-%m-%d_(%H-%M-%S)_%f"))
-        writer.write_image(file_name, frame)
+            t2 = cv2.getTickCount()
+            time1 = (t2 - t1) / freq
+            frame_rate_calc = 1 / time1
 
 
-    if object_name and object_name == "person" and person_score >= person_score_threshold:
-        keep_recording = True
-
-        if detection_time == 0:
-            detection_time = time.time()
-            keep_recording_timer = time.time()
-
-        full_file_path = writer.get_last_location(file_name)
-        person_frame_names.append(full_file_path)
-        logger.info("HUMAN FOUND: " + full_file_path)
-
-
-    if person_frame_names and (detection_time + send_email_timeout < time.time()):
-        logger.info("Sending email")
-        person_frame_names_1 = person_frame_names.copy()
-        Thread(target=sendEmail, args=(person_frame_names_1,)).start()
-        person_frame_names.clear()
-        detection_time = 0
-
-
-    if keep_recording_timer != 0 and (keep_recording_timer + person_detection_sleep_cooldown_time < time.time()):
-        keep_recording = False
-
-    # Calculate framerate
-    t2 = cv2.getTickCount()
-    time1 = (t2-t1)/freq
-    frame_rate_calc= 1/time1
-
-    # Let it rest a little
-    time.sleep(0.2)
-
-
-human_detected = False
-
-def idle_loop():
-    while not human_detected:
-
-        time.sleep(0.5)
-
-
-
-def detection_loop():
-    pass
-
-
-def photo_ml_parser():
-    pass
+ML_CCTV().main()

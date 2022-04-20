@@ -17,7 +17,7 @@ class Writer:
             os.mkdir(full_dir)
 
         file_path = os.path.join(full_dir, file_name)
-        logger.debug("Write file")
+        # logger.debug("Write file")
         cv2.imwrite(file_path, image)
 
         # cache the location
@@ -26,5 +26,5 @@ class Writer:
 
     @functools.lru_cache(maxsize=128, typed=False)
     def get_last_location(self, _id: str) -> str:
-        logger.debug({'Fetching file location (not using cache)': _id})
+        # logger.debug({'Fetching file location (not using cache)': _id})
         return self.location
