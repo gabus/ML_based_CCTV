@@ -9,7 +9,8 @@ from video_stream import VideoStream
 from loguru import logger
 import cli_argument_parser
 from photo_ml_parser import MLPhotoParser
-
+from utils.decorators import loop_for_sec
+from settings import CONTINUOUS_RECORDING_TIMER, PERSON_SCORE_THRESHOLD
 
 class ML_CCTV:
 
@@ -23,6 +24,8 @@ class ML_CCTV:
         self.ml = MLPhotoParser(cli_argument_parser.MODEL_NAME, cli_argument_parser.GRAPH_NAME, cli_argument_parser.LABELMAP_NAME)
         self.labels = self.ml.get_labels()
 
+        self.person_detection_cooldown_time = 6  # how many seconds after human is detected, camera should be alert
+
     def main(self):
         # Get model details
         height = self.ml.get_input_details()[0]['shape'][1]
@@ -32,11 +35,9 @@ class ML_CCTV:
         frame_rate_calc = 1
         freq = cv2.getTickFrequency()
 
-        person_detection_cooldown_time = 6  # in seconds
         person_detection_timer = 0
 
         logger.info("Start while loop")
-        # for frame1 in camera.capture_continuous(rawCapture, format="bgr",use_video_port=True):
         while True:
             # Start timer (for calculating frame rate)
             t1 = cv2.getTickCount()
@@ -54,12 +55,10 @@ class ML_CCTV:
             classes = self.ml.get_detected_object_id()
             scores = self.ml.get_scores()
 
-            person_score_threshold = 0.59
-
             # Loop over all detections
             for i in range(len(scores)):
 
-                if scores[i] < person_score_threshold:
+                if scores[i] < PERSON_SCORE_THRESHOLD:
                     continue
 
                 object_name = self.labels[int(classes[i])]  # Look up object name from "labels" array using class index
@@ -71,7 +70,6 @@ class ML_CCTV:
                 logger.debug({"scores[i]": scores[i], "label": object_name})
 
                 # Get bounding box coordinates and draw box
-                # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
                 ymin = int(max(1, (boxes[i][0] * cli_argument_parser.IM_H)))
                 xmin = int(max(1, (boxes[i][1] * cli_argument_parser.IM_W)))
                 ymax = int(min(cli_argument_parser.IM_H, (boxes[i][2] * cli_argument_parser.IM_H)))
@@ -79,21 +77,19 @@ class ML_CCTV:
 
                 cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (10, 255, 0), 1)
 
-                # ===============================================
-                # ML human score (comment out when not used)
-                # ===============================================
-                label = '%s: %d%%' % (object_name, int(scores[i] * 100))  # Example: 'person: 72%'
-                labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)  # Get font size
-                label_ymin = max(ymin, labelSize[1] + 10)  # Make sure not to draw label too close to top of window
-                cv2.rectangle(frame, (xmin, label_ymin - labelSize[1] - 10), (xmin + labelSize[0], label_ymin + baseLine - 10), (255, 255, 255),  cv2.FILLED)  # Draw white box to put label text in
-                cv2.putText(frame, label, (xmin, label_ymin - 7), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2)  # Draw label text
-                # ===============================================
-
                 # Draw framerate in corner of frame
                 cv2.putText(frame, 'FPS: {0:.2f}'.format(frame_rate_calc), (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)
 
-                # All the results have been drawn on the frame, so it's time to display it.
-                # cv2.imshow('Object detector', frame)
+                # ===============================================
+                # ML human score (comment out when not used)
+                # ===============================================
+                # label = '%s: %d%%' % (object_name, int(scores[i] * 100))  # Example: 'person: 72%'
+                # labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)  # Get font size
+                # label_ymin = max(ymin, labelSize[1] + 10)  # Make sure not to draw label too close to top of window
+                # cv2.rectangle(frame, (xmin, label_ymin - labelSize[1] - 10), (xmin + labelSize[0], label_ymin + baseLine - 10), (255, 255, 255),  cv2.FILLED)  # Draw white box to put label text in
+                # cv2.putText(frame, label, (xmin, label_ymin - 7), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2)  # Draw label text
+                # cv2.imshow('Object detector', frame)  # draw a frame on the screen
+                # ===============================================
 
                 file_name = "%s.png" % (datetime.now().strftime("%Y-%m-%d_(%H-%M-%S)_%f"))
                 self.writer.write_image(file_name, frame)
@@ -131,35 +127,27 @@ class ML_CCTV:
             time1 = (t2 - t1) / freq
             frame_rate_calc = 1 / time1
 
-            if person_detection_cooldown_time + person_detection_timer > time.time():
+            if self.person_detection_cooldown_time + person_detection_timer > time.time():
                 logger.debug("Human detected. Camera is alert")
                 continue
 
             logger.debug("idle")
             time.sleep(1)
 
+    @loop_for_sec(seconds=CONTINUOUS_RECORDING_TIMER)
     def detection_loop(self):
         """
         for next x seconds just continue recording without analyzing frames
         """
-        continues_recording_time = 3  # in seconds
+        logger.debug("saving frame without analyzing it")
+
         start_time = time.time()
-        frame_rate_calc = 1
+        frame = self.video_stream.get_new_frame()
+        end_time = time.time()
+        cv2.putText(frame, 'FPS: {0:.2f}'.format(1/(end_time - start_time)), (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)
 
-        while start_time + continues_recording_time > time.time():
-            logger.debug("saving frame without analyzing it")
-            t1 = cv2.getTickCount()
-            freq = cv2.getTickFrequency()
-
-            frame = self.video_stream.get_new_frame()
-            cv2.putText(frame, 'FPS: {0:.2f}'.format(frame_rate_calc), (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)
-
-            file_name = "%s.png" % (datetime.now().strftime("%Y-%m-%d_(%H-%M-%S)_%f"))
-            self.writer.write_image(file_name, frame)
-
-            t2 = cv2.getTickCount()
-            time1 = (t2 - t1) / freq
-            frame_rate_calc = 1 / time1
+        file_name = "%s.png" % (datetime.now().strftime("%Y-%m-%d_(%H-%M-%S)_%f"))
+        self.writer.write_image(file_name, frame)
 
 
 ML_CCTV().main()

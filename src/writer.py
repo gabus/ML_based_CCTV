@@ -24,7 +24,7 @@ class Writer:
         self.location = file_path
         self.get_last_location(file_name)
 
-    @functools.lru_cache(maxsize=128, typed=False)
+    @functools.lru_cache(maxsize=100, typed=False)
     def get_last_location(self, _id: str) -> str:
         # logger.debug({'Fetching file location (not using cache)': _id})
         return self.location

@@ -82,10 +82,11 @@ Set-ExecutionPolicy RemoteSigned
 ```
 
 
-### todo 
+### Todo 
+```
 [✔] move all file in src
-[] throttle down if no human detected
-[] fetch camera from only when requested from main thread
+[√] throttle down if no human detected
+[√] fetch camera from only when requested from main thread
 [] optimize mail manager (reduce file size without reducing quality? is there a better way to display images in gmail?)
 [] some files use camel-case variable naming. Change to match snake-style
 [] write setup.sh script which make raspberry py ready to go (venv, pip install, apt-get requirements, set .env)
@@ -94,6 +95,7 @@ Set-ExecutionPolicy RemoteSigned
 [] photos_clean_up_cron.py deletes only last day's photos. Adapt code to delete all folder before defined day
 [] experiment with image codecs to get the best quality for smallest file size
 [] add email title to .env file. Support for multiple cameras
+```
 
 Specs 1 (preferred):
 1. Every 1s the latest frame is requested from video_stream
