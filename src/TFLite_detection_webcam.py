@@ -58,12 +58,11 @@ class ML_CCTV:
             # Loop over all detections
             for i in range(len(scores)):
 
-                if scores[i] < PERSON_SCORE_THRESHOLD:
+                object_name = self.labels[int(classes[i])]  # Look up object name from "labels" array using class index
+                if object_name != "person":
                     continue
 
-                object_name = self.labels[int(classes[i])]  # Look up object name from "labels" array using class index
-
-                if object_name != "person":
+                if scores[i] < PERSON_SCORE_THRESHOLD:
                     continue
 
                 person_detection_timer = time.time()
@@ -144,7 +143,7 @@ class ML_CCTV:
         start_time = time.time()
         frame = self.video_stream.get_new_frame()
         end_time = time.time()
-        cv2.putText(frame, 'FPS: {0:.2f}'.format(1/(end_time - start_time)), (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)
+        cv2.putText(frame, 'FPS: {0:.2f}'.format(1/max(end_time - start_time, 0.01)), (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)
 
         file_name = "%s.png" % (datetime.now().strftime("%Y-%m-%d_(%H-%M-%S)_%f"))
         self.writer.write_image(file_name, frame)

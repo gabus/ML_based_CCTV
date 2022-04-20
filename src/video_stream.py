@@ -12,6 +12,8 @@ class VideoStream:
         self.grabbed, self.frame = self.stream.read()
 
     def get_new_frame(self):
-        # Return the most recent frame
+        """
+        Return the most recent frame
+        """
         self.grabbed, self.frame = self.stream.read()
         return self.frame

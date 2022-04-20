@@ -13,5 +13,4 @@ MODEL_NAME = args.modeldir
 GRAPH_NAME = args.graph
 LABELMAP_NAME = args.labels
 USER_FRAMERATE = int(args.framerate)
-resW, resH = args.resolution.split('x')
-IM_W, IM_H = int(resW), int(resH)
+IM_W, IM_H = map(int, args.resolution.split('x'))
