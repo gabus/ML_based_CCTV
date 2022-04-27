@@ -95,6 +95,7 @@ Set-ExecutionPolicy RemoteSigned
 [] photos_clean_up_cron.py deletes only last day's photos. Adapt code to delete all folder before defined day
 [] experiment with image codecs to get the best quality for smallest file size
 [] add email title to .env file. Support for multiple cameras
+[] instead of restarting cctv, adjust camera brightness automatically (every 5min? every frame?)
 ```
 
 Specs 1 (preferred):
