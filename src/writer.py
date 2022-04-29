@@ -1,15 +1,15 @@
 import os
 from cv2 import cv2
 import datetime
-from loguru import logger
-import functools
 
 
 class Writer:
-    storage_location_root = 'photos'
-    location = ''
+    def __init__(self):
+        self.storage_location_root = 'photos'
+        self.location = ''
 
-    def write_image(self, file_name: str, image):
+    def write_image(self, image):
+        file_name = "%s.jpeg" % (datetime.datetime.now().strftime("%Y-%m-%d_(%H-%M-%S)_%f"))
         sub_dir = datetime.datetime.now().strftime("%Y-%m-%d")
         full_dir = os.path.join(self.storage_location_root, sub_dir)
 
@@ -17,14 +17,6 @@ class Writer:
             os.mkdir(full_dir)
 
         file_path = os.path.join(full_dir, file_name)
-        # logger.debug("Write file")
         cv2.imwrite(file_path, image)
 
-        # cache the location
-        self.location = file_path
-        self.get_last_location(file_name)
-
-    @functools.lru_cache(maxsize=100, typed=False)
-    def get_last_location(self, _id: str) -> str:
-        # logger.debug({'Fetching file location (not using cache)': _id})
-        return self.location
+        return file_path

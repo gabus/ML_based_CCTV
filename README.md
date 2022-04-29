@@ -35,10 +35,14 @@ pipenv install
 ```
 
 ## Project setup: all platforms
-```commandline
+```bash
 cp .env.example .env
 ```
 
+## Download photos from camera
+```bash
+scp -r pi@192.168.0.175:/home/pi/tflite/photos .
+```
 
 ### supervisor config /etc/supervisor/conf.d/cctv.conf
 ```/etc/supervisor/conf.d/cctv.conf
@@ -88,14 +92,17 @@ Set-ExecutionPolicy RemoteSigned
 [√] throttle down if no human detected
 [√] fetch camera from only when requested from main thread
 [] optimize mail manager (reduce file size without reducing quality? is there a better way to display images in gmail?)
-[] some files use camel-case variable naming. Change to match snake-style
+[✔] some files use camel-case variable naming. Change to match snake-style
 [] write setup.sh script which make raspberry py ready to go (venv, pip install, apt-get requirements, set .env)
-[] fix any problems in "Code -> Inspect Code"
+[✔] fix any problems in "Code -> Inspect Code"
 [] photos_clean_up_cron.py has hardcoded path variable. Fix it
 [] photos_clean_up_cron.py deletes only last day's photos. Adapt code to delete all folder before defined day
 [] experiment with image codecs to get the best quality for smallest file size
 [] add email title to .env file. Support for multiple cameras
-[] instead of restarting cctv, adjust camera brightness automatically (every 5min? every frame?)
+[] cron to delete photos doesn't work - why?
+[] add instructions how to download photos from sd card into README
+[] change password for camera
+[✔] instead of restarting cctv, adjust camera brightness automatically (every 5min? every frame?)
 ```
 
 Specs 1 (preferred):
