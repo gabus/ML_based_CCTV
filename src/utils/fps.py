@@ -3,22 +3,13 @@ from time import time
 
 class FPS:
 
-    """
-    doesn't work..
-    """
     def __init__(self):
-        self.start_time = time()
-        self.frames = 1
-        self.next_reset_timer = time() + 10 * 60
+        self.last_frame_time = time()
+
+    def get_frame_time(self) -> float:
+        rs = time() - self.last_frame_time
+        self.last_frame_time = time()
+        return rs
 
     def update(self):
-        self.frames = self.frames + 1
-
-    def get_fps(self) -> float:
-        if self.next_reset_timer < time():
-            self.reset()
-
-        return self.frames / (time() - self.start_time)
-
-    def reset(self):
-        self.__init__()
+        self.last_frame_time = time()

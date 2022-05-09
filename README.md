@@ -18,13 +18,6 @@ pipenv install
 sh ./get_pi_requirements.sh
 ```
 
-### enable camera in settings
-```commandline
-sudo raspi-config
-sudo reboot now
-```
-
-
 ## How to make it work: Windows
 https://www.python.org/downloads/release/python-3810/
 ```windows (2022.04.14: tflite-runtime has compiled version only for python 3.8 on windows)
@@ -44,45 +37,24 @@ cp .env.example .env
 scp -r pi@192.168.0.175:/home/pi/tflite/photos .
 ```
 
-### supervisor config /etc/supervisor/conf.d/cctv.conf
-```/etc/supervisor/conf.d/cctv.conf
-[program:motioneye-cctv]
-command=python3 -u src/TFLite_detection_webcam.py --modeldir=coco-model --resolution=1600x1200 --framerate=30
-user=pi
-directory=/home/pi/tflite
-stdout_logfile=/var/log/motioneye-cctv.log
-redirect_stderr=true
-environment=PYTHONPATH=/home/pi/.local/lib/python3.7/site-packages
-```
-
-### add cron to crontab -e
-```commandline
-*/30 * * * * python3 /home/pi/tflite/crons/photos_cleanup_cron.py >> /var/log/motioneye-cctv-cron.log 2>&1
-*/31 * * * * sh /home/pi/tflite/crons/restart_app.sh >> /var/log/motioneye-cctv-cron.log 2>&1
-```
+### update .env credentials file
 
 ### to run scripts manually instead of supervisor use
 ```commandline
 python3 src/TFLite_detection_webcam.py --modeldir=coco-model --resolution=1600x1200 --framerate=30
 ```
 
-### Debugging
-```commandline
-sudo supervisorctl status
-sudo supervisorctl restart all
-tail -fn 100 /var/log/motioneye-cctv.log
-```
-
-## What's missing?
-* downscale emailing photos - currently it's ~3MB (1600x1200 px)
-* there's rare random issue when image quality becomes really poor. Requires power disconnection
-* could be faster
-
 ### Troubleshooting
 ```commandline
 On windows '.\venv\scripts\activate' throws UnauthorizedAccess
 Run PowerShell in Admin mode:
 Set-ExecutionPolicy RemoteSigned
+```
+
+```commandline
+sudo supervisorctl status
+sudo supervisorctl restart all
+tail -fn 100 /var/log/motioneye-cctv.log
 ```
 
 
@@ -103,6 +75,10 @@ Set-ExecutionPolicy RemoteSigned
 [] add instructions how to download photos from sd card into README
 [] change password for camera
 [✔] instead of restarting cctv, adjust camera brightness automatically (every 5min? every frame?)
+[] instead of restarting cctv, adjust camera brightness automatically (every 5min? every frame?)
+[] add sudo cp supervosor_motion_eye.conf to supervisor folder
+[] can i add cp crontab to cron location? Where are crons stored?
+[] !!! update supervisor to make it work in venv !!!
 ```
 
 Specs 1 (preferred):

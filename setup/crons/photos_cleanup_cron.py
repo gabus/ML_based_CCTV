@@ -2,7 +2,8 @@ import os
 import datetime
 import shutil
 import logging
-from settings import STORAGE_RETENTION_DAYS
+from src.settings import STORAGE_RETENTION_DAYS
+
 
 logging.basicConfig(format='[%(asctime)s] %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
 

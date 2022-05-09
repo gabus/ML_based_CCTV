@@ -9,6 +9,8 @@ import cli_argument_parser
 from photo_ml_parser import MLPhotoParser
 from utils.decorators import loop_for_sec
 from settings import CONTINUOUS_RECORDING_TIMER, PERSON_SCORE_THRESHOLD
+from utils.fps import FPS
+
 
 
 class ML_CCTV:
@@ -21,6 +23,7 @@ class ML_CCTV:
 
         self.writer = Writer()
         self.mailer = Mailer()
+        self.fps = FPS()
 
         self.ml = MLPhotoParser(cli_argument_parser.MODEL_NAME, cli_argument_parser.GRAPH_NAME, cli_argument_parser.LABELMAP_NAME)
         self.labels = self.ml.get_labels()
@@ -70,7 +73,7 @@ class ML_CCTV:
                 cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (10, 255, 0), 1)
 
                 # Draw framerate in corner of frame
-                # cv2.putText(frame, 'FPS: {0:.2f}'.format(self.fps.get_fps()), (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)
+                cv2.putText(frame, 'FPS: {0:.2f}'.format(self.fps.get_frame_time()), (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)
 
                 # ===============================================
                 # ML human score (comment out when not used)
@@ -87,6 +90,10 @@ class ML_CCTV:
                 self.photos_to_send.append(file_location)
 
                 self.detection_loop()
+
+            # force update at the end of execution as no "get_execution_time" was triggered
+            # hence next frame won't be accurate
+            self.fps.update()
 
             if self.person_detection_cooldown_time + self.person_detection_timer > time.time():
                 logger.debug("Human detected. Camera is alert")
@@ -111,7 +118,7 @@ class ML_CCTV:
         logger.debug("saving frames without analyzing")
 
         frame = self.video_stream.get_new_frame()
-        # cv2.putText(frame, 'FPS: {0:.2f}'.format(1/max(end_time - start_time, 0.01)), (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)
+        cv2.putText(frame, 'FPS: {0:.2f}'.format(self.fps.get_frame_time()), (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)
 
         file_location = self.writer.write_image(frame)
         self.photos_to_send.append(file_location)
