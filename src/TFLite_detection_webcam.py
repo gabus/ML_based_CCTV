@@ -8,27 +8,24 @@ from loguru import logger
 import cli_argument_parser
 from photo_ml_parser import MLPhotoParser
 from utils.decorators import loop_for_sec
-from settings import CONTINUOUS_RECORDING_TIMER, PERSON_SCORE_THRESHOLD
+from settings import CONTINUOUS_RECORDING_TIMER, PERSON_SCORE_THRESHOLD, IDLE_LOOP_SLEEP, CAMERA_RESET_TIMER, \
+    PERSON_DETECTION_COOLDOWN_TIME, CONTINUOUS_RECORDING_LOOP_SLEEP
 from utils.fps import FPS
-
 
 
 class ML_CCTV:
 
     def __init__(self):
-        # Initialize video stream
-        self.video_stream = VideoStream((cli_argument_parser.IM_W, cli_argument_parser.IM_H), cli_argument_parser.USER_FRAMERATE)
-        self.video_stream_restart_timer = 30 * 60  # how often reset camera to fix brightness (in minutes)
-        self.next_video_stream_reset = time.time() + self.video_stream_restart_timer
-
         self.writer = Writer()
         self.mailer = Mailer()
         self.fps = FPS()
 
+        self.video_stream = VideoStream((cli_argument_parser.IM_W, cli_argument_parser.IM_H), cli_argument_parser.USER_FRAMERATE)
+        self.next_video_stream_reset = time.time() + CAMERA_RESET_TIMER
+
         self.ml = MLPhotoParser(cli_argument_parser.MODEL_NAME, cli_argument_parser.GRAPH_NAME, cli_argument_parser.LABELMAP_NAME)
         self.labels = self.ml.get_labels()
 
-        self.person_detection_cooldown_time = 6  # how many seconds after human is detected, camera should be alert
         self.person_detection_timer = 0
         self.photos_to_send = []
 
@@ -89,14 +86,13 @@ class ML_CCTV:
                 file_location = self.writer.write_image(frame)
                 self.photos_to_send.append(file_location)
 
-                self.detection_loop()
+                self.continuous_recording_loop()
 
-            # force update at the end of execution as no "get_execution_time" was triggered
-            # hence next frame won't be accurate
+            # force update at the end of execution as no "get_frame_time" was triggered
             self.fps.update()
 
-            if self.person_detection_cooldown_time + self.person_detection_timer > time.time():
-                logger.debug("Human detected. Camera is alert")
+            if PERSON_DETECTION_COOLDOWN_TIME + self.person_detection_timer > time.time():
+                logger.debug("Human was detected. Camera is alert")
                 continue
 
             if self.photos_to_send:
@@ -105,13 +101,13 @@ class ML_CCTV:
 
             if self.next_video_stream_reset < time.time():
                 self.video_stream.reset()
-                self.next_video_stream_reset = self.next_video_stream_reset + self.video_stream_restart_timer
+                self.next_video_stream_reset = self.next_video_stream_reset + CAMERA_RESET_TIMER
 
             logger.debug("idle")
-            time.sleep(1)
+            time.sleep(IDLE_LOOP_SLEEP)
 
     @loop_for_sec(seconds=CONTINUOUS_RECORDING_TIMER)
-    def detection_loop(self):
+    def continuous_recording_loop(self):
         """
         for next x seconds just continue recording without analyzing frames
         """
@@ -122,7 +118,7 @@ class ML_CCTV:
 
         file_location = self.writer.write_image(frame)
         self.photos_to_send.append(file_location)
-        time.sleep(0.3)
+        time.sleep(CONTINUOUS_RECORDING_LOOP_SLEEP)
 
 
 ML_CCTV().main()

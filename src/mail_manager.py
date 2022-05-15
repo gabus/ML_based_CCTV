@@ -106,7 +106,8 @@ class Mailer:
             total_size = total_size + fs
 
         if total_size < attachment_size_limit:
-            logger.info("All attachment files takes less space than max. Sending all")
+            logger.info("All attachment files takes {}MB which is less space than {}MB. Sending all"
+                        .format(round(total_size / 1024 / 1024, 2), attachment_size_limit / 1024 / 1024))
             return attachments  # all files takes less than the limit. Send all
 
         approximate_one_file_size = total_size / len(attachments)
@@ -134,4 +135,3 @@ class Mailer:
             index = index + int(round(approximate_index, 0))
 
         return files_to_send
-

@@ -11,10 +11,13 @@ class VideoStream:
         self.camera_refresh_rate = 5  # how often camera resets brightness in minutes
         self.last_camera_refresh_time = time.time()
 
+        # raspberry pi setting
         # self.stream = cv2.VideoCapture(0)
         # self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'JPEG'))
+
+        # whindows settings
         self.stream = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-        self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'X264'))
+        self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'JPEG'))
 
         # When you try to set random resolution, opencv sets nearest resolution if that resolution is not available.
         self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, _resolution[0])

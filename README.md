@@ -51,6 +51,14 @@ Run PowerShell in Admin mode:
 Set-ExecutionPolicy RemoteSigned
 ```
 
+Commands to check storage usage
+```commandline
+du -hs .
+du -h .
+df -h .
+df -h
+```
+
 ```commandline
 sudo supervisorctl status
 sudo supervisorctl restart all
@@ -61,24 +69,26 @@ tail -fn 100 /var/log/motioneye-cctv.log
 ### Todo 
 ```
 [✔] move all file in src
-[√] throttle down if no human detected
-[√] fetch camera from only when requested from main thread
+[✔] throttle down if no human detected
+[✔] fetch camera from only when requested from main thread
 [] optimize mail manager (reduce file size without reducing quality? is there a better way to display images in gmail?)
+    [✔] added limiter to 25mb attachements
+    [✔] JPEG encoder used instead of X264
 [✔] some files use camel-case variable naming. Change to match snake-style
 [] write setup.sh script which make raspberry py ready to go (venv, pip install, apt-get requirements, set .env)
 [✔] fix any problems in "Code -> Inspect Code"
 [] photos_clean_up_cron.py has hardcoded path variable. Fix it
 [] photos_clean_up_cron.py deletes only last day's photos. Adapt code to delete all folder before defined day
-[] experiment with image codecs to get the best quality for smallest file size
+[✔] experiment with image codecs to get the best quality for smallest file size. JPEG vs X264
 [] add email title to .env file. Support for multiple cameras
 [] cron to delete photos doesn't work - why?
 [] add instructions how to download photos from sd card into README
 [] change password for camera
 [✔] instead of restarting cctv, adjust camera brightness automatically (every 5min? every frame?)
-[] instead of restarting cctv, adjust camera brightness automatically (every 5min? every frame?)
+    [✔] video_stream.VideoStream.reset
 [] add sudo cp supervosor_motion_eye.conf to supervisor folder
 [] can i add cp crontab to cron location? Where are crons stored?
-[] !!! update supervisor to make it work in venv !!!
+[] !!! update supervisor configs to make it work in venv. urrently it's working outside venv only
 ```
 
 Specs 1 (preferred):
