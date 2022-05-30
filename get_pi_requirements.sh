@@ -17,5 +17,5 @@ sudo apt-get -y install libjasper-dev
 
 version=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
 
-# https://github.com/iCorv/tflite-runtime - find correct runtime
+# https://github.com/iCorv/tflite-runtime - find correct runtime for OS and python version
 # pip3 install https://github.com/iCorv/tflite-runtime/raw/master/tflite_runtime-2.4.0-py3-none-any.whl

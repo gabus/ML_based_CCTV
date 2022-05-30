@@ -1,19 +1,19 @@
+import os
+import math
 import smtplib
+from enum import Enum
+from loguru import logger
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
-from settings import FROM_EMAIL, FROM_EMAIL_PASSWORD, TO_EMAIL
-from enum import Enum
-from loguru import logger
-import os
-import math
+from settings import FROM_EMAIL, FROM_EMAIL_PASSWORD, TO_EMAIL, EMAIL_ATTACHMENT_SIZE_LIMIT, EMAIL_SUBJECT
 
 
 class AttachmentsSelectAlgorithm(Enum):
     all = 0
-    first_25mb = 1
-    every_second_25mb = 2
-    spread_25mb = 3
+    first_to_limit = 1
+    every_second_to_limit = 2
+    even_spread_to_limit = 3
 
 
 class Mailer:
@@ -25,25 +25,21 @@ class Mailer:
         logger.info("Sending email")
 
         msg_root = MIMEMultipart('related')
-        msg_root['Subject'] = 'Security Update'
+        msg_root['Subject'] = EMAIL_SUBJECT
         msg_root['From'] = FROM_EMAIL
         msg_root['To'] = TO_EMAIL
         msg_root.preamble = 'Raspberry pi security camera update'
 
-        msgAlternative = MIMEMultipart('alternative')
-        msg_root.attach(msgAlternative)
-        msgText = MIMEText('Smart security cam found object')
-        msgAlternative.attach(msgText)
+        msg_alternative = MIMEMultipart('alternative')
+        msg_root.attach(msg_alternative)
+        msg_alternative.attach(MIMEText('Smart security cam found object'))
 
-        msgText = MIMEText('<img src="cid:image1">', 'html')
-        msgAlternative.attach(msgText)
-
-        if attachments_select_algorithm == AttachmentsSelectAlgorithm.first_25mb:
-            attachments = self.__first_25mb(attachments)
-        elif attachments_select_algorithm == AttachmentsSelectAlgorithm.every_second_25mb:
-            attachments = self.__every_second_25mb(attachments)
-        elif attachments_select_algorithm == AttachmentsSelectAlgorithm.spread_25mb:
-            attachments = self.__spread_25mb(attachments)
+        if attachments_select_algorithm == AttachmentsSelectAlgorithm.first_to_limit:
+            attachments = self.__first_to_limit(attachments)
+        elif attachments_select_algorithm == AttachmentsSelectAlgorithm.every_second_to_limit:
+            attachments = self.__every_second_to_limit(attachments)
+        elif attachments_select_algorithm == AttachmentsSelectAlgorithm.even_spread_to_limit:
+            attachments = self.__even_spread_to_limit(attachments)
 
         for frame_name in attachments:
             image_content = open(frame_name, 'rb').read()
@@ -59,21 +55,21 @@ class Mailer:
         smtp.quit()
 
     @staticmethod
-    def __first_25mb(attachments: list):
+    def __first_to_limit(attachments: list) -> list:
         """
         |||----------
         """
-        pass
+        return attachments
 
     @staticmethod
-    def __every_second_25mb(attachments: list):
+    def __every_second_to_limit(attachments: list) -> list:
         """
         |-|-|---------
         """
-        pass
+        return attachments
 
     @staticmethod
-    def __spread_25mb(attachments: list) -> list:
+    def __even_spread_to_limit(attachments: list) -> list:
         """
         |---|---|-
         |-----|-----|-
@@ -98,8 +94,7 @@ class Mailer:
 
         total_size = 0
         files_to_send = []
-        attachment_size_limit = 5 * 1024 * 1024  # 5MB
-        # attachment_size_limit = 0.3 * 1024 * 1024  # 0.3MB
+        attachment_size_limit = EMAIL_ATTACHMENT_SIZE_LIMIT * 1024 * 1024
 
         for attachment in attachments:
             fs = os.path.getsize(attachment)

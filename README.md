@@ -28,6 +28,7 @@ pipenv install
 ```
 
 ## Project setup: all platforms
+Variables that need to be set (everything else can be default): FROM_EMAIL TO_EMAIL FROM_EMAIL_PASSWORD PHOTOS_STORAGE_LOCATION
 ```bash
 cp .env.example .env
 ```
@@ -77,18 +78,20 @@ tail -fn 100 /var/log/motioneye-cctv.log
 [✔] some files use camel-case variable naming. Change to match snake-style
 [] write setup.sh script which make raspberry py ready to go (venv, pip install, apt-get requirements, set .env)
 [✔] fix any problems in "Code -> Inspect Code"
-[] photos_clean_up_cron.py has hardcoded path variable. Fix it
-[] photos_clean_up_cron.py deletes only last day's photos. Adapt code to delete all folder before defined day
+[√] photos_clean_up_cron.py has hardcoded path variable. Fix it
+[√] photos_clean_up_cron.py deletes only last day's photos. Adapt code to delete all folder before defined day
 [✔] experiment with image codecs to get the best quality for smallest file size. JPEG vs X264
-[] add email title to .env file. Support for multiple cameras
-[] cron to delete photos doesn't work - why?
+[√] add email title to .env file. Support for multiple cameras
+[√] cron to delete photos doesn't work - why?
 [] add instructions how to download photos from sd card into README
 [] change password for camera
 [✔] instead of restarting cctv, adjust camera brightness automatically (every 5min? every frame?)
     [✔] video_stream.VideoStream.reset
-[] add sudo cp supervosor_motion_eye.conf to supervisor folder
-[] can i add cp crontab to cron location? Where are crons stored?
-[] !!! update supervisor configs to make it work in venv. urrently it's working outside venv only
+[√] add sudo cp supervosor_motion_eye.conf to supervisor folder
+[√] can i add cp crontab to cron location? Where are crons stored?
+[] !!! update supervisor configs to make it work in venv. currently it's working outside venv only
+[] setup/crontab contains global paths -- change it
+[] setup/supervosor_motion_eye contains global paths -- change it
 ```
 
 Specs 1 (preferred):

@@ -96,7 +96,7 @@ class ML_CCTV:
                 continue
 
             if self.photos_to_send:
-                Thread(target=self.mailer.send_email, args=(self.photos_to_send, AttachmentsSelectAlgorithm.spread_25mb,)).start()
+                Thread(target=self.mailer.send_email, args=(self.photos_to_send, AttachmentsSelectAlgorithm.even_spread_to_limit, )).start()
                 self.photos_to_send = []
 
             if self.next_video_stream_reset < time.time():
