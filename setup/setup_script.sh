@@ -12,8 +12,8 @@ sudo cp setup/crontab /var/spool/cron/crontabs/cctv_crontab
 
 echo '================ injecting paths into supervisor and cron configs ================'
 cleanup_cron_dir=$PWD"/photos_cleanup_cron.py"
-sed -i "s/{photos_cleanup_dir_file}/$cleanup_cron_dir/" /var/spool/cron/crontabs/cctv_crontab
-sed -i "s/{project_root}/$PWD/" /etc/supervisor/conf.d/cctv.conf
+sed -i "s@{photos_cleanup_dir_file}@$cleanup_cron_dir@" /var/spool/cron/crontabs/cctv_crontab
+sed -i "s@{project_root}@$PWD@" /etc/supervisor/conf.d/cctv.conf
 
 
 #  original cron
