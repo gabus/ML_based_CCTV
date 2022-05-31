@@ -13,4 +13,9 @@ python-decouple = "*"
 [dev-packages]
 
 [requires]
-python_version = "3.8"
+# for windows. tflite works only with python 3.8 on windows
+#python_version = "3.8"
+
+# for everything else
+python_version = "3.9"
+
