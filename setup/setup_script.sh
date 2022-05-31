@@ -12,9 +12,10 @@ sudo cp setup/crontab /var/spool/cron/crontabs/cctv_crontab
 
 echo '================ injecting paths into supervisor and cron configs ================'
 cleanup_cron_dir=$PWD"/photos_cleanup_cron.py"
-sed -i "s@{photos_cleanup_dir_file}@$cleanup_cron_dir@" /var/spool/cron/crontabs/cctv_crontab
-sed -i "s@{project_root}@$PWD@" /etc/supervisor/conf.d/cctv.conf
+sudo sed -i "s@{photos_cleanup_dir_file}@$cleanup_cron_dir@" /var/spool/cron/crontabs/cctv_crontab
+sudo sed -i "s@{project_root}@$PWD@" /etc/supervisor/conf.d/cctv.conf
 
+sudo supervisorctl restart all
 
 #  original cron
 #   */30 * * * * python3 /home/pi/tflite/crons/photos_cleanup_cron.py >> /var/log/motioneye-cctv-cron.log 2>&1
