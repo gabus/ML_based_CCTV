@@ -1,9 +1,3 @@
-echo '================ building python environment ================'
-python3 -m venv venv
-source venv/bin/activate
-pip install pipenv
-pipenv install
-
 echo '================ installing requirements ================'
 sh get_pi_requirements.sh
 
