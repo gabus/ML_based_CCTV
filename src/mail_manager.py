@@ -32,7 +32,7 @@ class Mailer:
 
         msg_alternative = MIMEMultipart('alternative')
         msg_root.attach(msg_alternative)
-        msg_alternative.attach(MIMEText('Smart security cam found object'))
+        msg_alternative.attach(MIMEText('human detected'))
 
         if attachments_select_algorithm == AttachmentsSelectAlgorithm.first_to_limit:
             attachments = self.__first_to_limit(attachments)
@@ -118,6 +118,7 @@ class Mailer:
         logger.info({
             "all attachments": len(attachments),
             "how many file will be sent": approximate_files_to_send,
+            "file picking method": "__even_spread_to_limit",
             "approximate_index": approximate_index,
             "total files size (mb)": round(total_size / 1024 / 1024, 2),
             "mailer attachments limit (mb)": round(attachment_size_limit / 1024 / 1024, 2)
