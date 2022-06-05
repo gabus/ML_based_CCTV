@@ -103,7 +103,7 @@ class ML_CCTV:
                 self.video_stream.reset()
                 self.next_video_stream_reset = self.next_video_stream_reset + CAMERA_RESET_TIMER
 
-            logger.debug("idle")
+            # logger.debug("idle")
             time.sleep(IDLE_LOOP_SLEEP)
 
     @loop_for_sec(seconds=CONTINUOUS_RECORDING_TIMER)
