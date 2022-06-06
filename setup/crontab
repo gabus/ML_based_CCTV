@@ -1,1 +1,1 @@
-*/30 * * * * python3 {photos_cleanup_dir_file} >> /var/log/motioneye-cctv-cron.log 2>&1
+*/30 * * * * {project_root}/python3 {photos_cleanup_dir_file} >> /var/log/motioneye-cctv-cron.log 2>&1

@@ -10,9 +10,12 @@ sudo cp setup/supervisor_motion_eye.conf /etc/supervisor/conf.d/cctv.conf
 echo '================ copying crontab to /var/spool/cron/crontabs/cctv_crontab ================'
 sudo cp setup/crontab /var/spool/cron/crontabs/cctv_crontab
 
-echo '================ injecting paths into supervisor and cron configs ================'
-cleanup_cron_dir=$PWD"/photos_cleanup_cron.py"
-sudo sed -i "s@{photos_cleanup_dir_file}@$cleanup_cron_dir@" /var/spool/cron/crontabs/cctv_crontab
+echo '================ injecting paths into configs ================'
 sudo sed -i "s@{project_root}@$PWD@g" /etc/supervisor/conf.d/cctv.conf
 
+cleanup_cron_dir=$PWD"/photos_cleanup_cron.py"
+sudo sed -i "s@{photos_cleanup_dir_file}@$cleanup_cron_dir@" /var/spool/cron/crontabs/cctv_crontab
+sudo sed -i "s@{project_root}@$PWD@" /var/spool/cron/crontabs/cctv_crontab
+
+echo '================ restarting supervisor ================'
 sudo supervisorctl restart all
