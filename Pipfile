@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+opencv-python = "*"
+numpy = "*"
+tflite-runtime = "*"
+loguru = "*"
+python-decouple = "*"
+
+[dev-packages]
+
+[requires]
+# for windows. tflite works only with python 3.8 on windows
+#python_version = "3.8"
+
+# for everything else
+python_version = "3.9"
+

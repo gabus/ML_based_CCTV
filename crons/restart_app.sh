@@ -1,1 +1,0 @@
-sudo supervisorctl restart all

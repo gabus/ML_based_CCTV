@@ -1,72 +1,58 @@
-### What's this?
-Neural network based object recognition CCTV which sends email once there's a person.
+## What's this?
+Neural network based object recognition CCTV which sends email once person is detected
 
-Thanks to 
+## How it works
+1. Every 1s the latest frame is requested from video_stream
+2. Frame is analyzed via ML 
+3. If human detected, for the next 5 seconds continue to request frames from video_stream and store them locally (without analyzing via ML)
+4. After 5 seconds ask for new latest frame and analyze again
+5. If no human detected, send email and return to 1, otherwise continue from step 3
+
++ gathers as many frames as camera capable to produce + writing locally
++ low cpu hit
+- can't show on frame where object was detected
+
+### Thanks to 
 * https://github.com/HackerShackOfficial/Smart-Security-Camera
 * https://github.com/EdjeElectronics/TensorFlow-Lite-Object-Detection-on-Android-and-Raspberry-Pi
 
-## How to make it work? 
-
+## How to make it work on unix machines
 ```commandline
-sudo apt-get update
+python3 -m venv venv
+source venv/bin/activate
+pip install pipenv
+pipenv install
 ```
 
+### Project setup
+Variables that need to be set: FROM_EMAIL, TO_EMAIL, FROM_EMAIL_PASSWORD, PHOTOS_STORAGE_LOCATION. Everything else can be default
+```bash
+cp .env.example .env
+```
+
+### Run script locally
 ```commandline
-sudo apt-get install supervisor
+python3 src/TFLite_detection_webcam.py --modeldir=coco-model --resolution=1600x1200 --framerate=30
 ```
 
+## Troubleshooting
+
+### Download photos from camera
+```bash
+scp -r pi@192.168.1.175:/home/pi/tflite/photos .
+```
+
+### Commands to check storage usage
 ```commandline
-sudo apt-get install python3-pip
+du -hs .
+du -h .
+df -h .
+df -h
 ```
 
-### enable camera in settings
-```commandline
-sudo raspi-config
-sudo reboot now
-```
-
-### install all other crap
-```commandline
-sh ./get_pi_requirements.sh
-```
-
-### modify credentials in mail_manager.py
-```python
-fromEmail = 'your_mama@gmail.com'
-fromEmailPassword = 'your_momma_is_so_ugly_she_made_One_Direction_go_another_direction'
-toEmail = '50_cent@gmail.com'
-```
-
-### supervisor config /etc/supervisor/conf.d/cctv.conf
-```/etc/supervisor/conf.d/cctv.conf
-[program:motioneye-cctv]
-command=python3 -u TFLite_detection_webcam.py --modeldir=coco-model --resolution=1600x1200 --framerate=30
-user=pi
-directory=/home/pi/tflite
-stdout_logfile=/var/log/motioneye-cctv.log
-redirect_stderr=true
-environment=PYTHONPATH=/home/pi/.local/lib/python3.7/site-packages
-```
-
-### add cron to crontab -e
-```commandline
-*/30 * * * * python3 /home/pi/tflite/crons/photos_cleanup_cron.py >> /var/log/motioneye-cctv-cron.log 2>&1
-*/31 * * * * sh /home/pi/tflite/crons/restart_app.sh >> /var/log/motioneye-cctv-cron.log 2>&1
-```
-
-### to run scripts manually instead of supervisor use
-```commandline
-python3 TFLite_detection_webcam.py --modeldir=coco-model --resolution=1600x1200 --framerate=30
-```
-
-### Debugging
+### Commands to debug supervisor
 ```commandline
 sudo supervisorctl status
 sudo supervisorctl restart all
 tail -fn 100 /var/log/motioneye-cctv.log
 ```
-
-## What's missing?
-* downscale emailing photos - currently it's ~3MB (1600x1200 px)
-* there's rare random issue when image quality becomes really poor. Requires power disconnection
-* could be faster
