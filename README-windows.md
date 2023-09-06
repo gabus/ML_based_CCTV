@@ -24,4 +24,6 @@ pi src/TFLite_detection_webcam.py --modeldir=coco-model --resolution=1600x1200 -
 On windows '.\venv\scripts\activate' throws UnauthorizedAccess
 Run PowerShell in Admin mode:
 Set-ExecutionPolicy RemoteSigned
+or
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
